@@ -299,6 +299,14 @@ static NSSet *numberTypeNames = nil;
     
 }
 
++ (NSString*)getPropertyTypeNameByPropertyName:(NSString*)proName class:(Class)clazz{
+    if (proName != nil && [proName isKindOfClass:[NSString class]]) {
+        objc_property_t property = class_getProperty([clazz class], [proName cStringUsingEncoding:NSUTF8StringEncoding]);
+        return [self getPropertyTypeName:property];
+    }
+    return nil;
+}
+
 +(NSString*) getPropertyTypeName:(objc_property_t) property {
     const char *attributes = property_getAttributes(property);
     NSString *attributeStr = [[NSString alloc] initWithBytes:attributes length:strlen(attributes) encoding:NSUTF8StringEncoding];
