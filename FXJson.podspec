@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
 
   s.frameworks = "Foundation", "UIKit"
 
-  s.module_name = 'FX' 
+  s.module_name = 'FXJson' 
 
   s.requires_arc = true
 
