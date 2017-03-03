@@ -200,6 +200,25 @@ static NSSet *numberTypeNames = nil;
     }
     return nil;
 }
++(id) fromJsonString:(NSString*) json {
+    if (json) {
+        return [self fromJsonData:[json dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+    return nil;
+}
+
++(id) fromJsonData:(NSData*)jsonData {
+    if (jsonData) {
+        NSError *error = nil;
+        id o = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingAllowFragments error:&error];
+        if (error) {
+            @throw [NSException exceptionWithName:@"WJJSONException" reason:[error userInfo][NSLocalizedDescriptionKey] userInfo:[error userInfo]];
+        } else {
+            return o;
+        }
+    }
+    return nil;
+}
 
 + (NSMutableArray*) getPropertys:(Class)clazz{
     if (clazz == [NSObject class]) {

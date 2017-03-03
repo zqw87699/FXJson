@@ -37,5 +37,14 @@
  *  转换FXJsonObject类型的数据
  */
 +(id)fromObject:(id) value propertyDesc:(FXJsonObject*) desc;
+/**
+ *  返回NSDictionary 或者 NSArray
+ */
++(id) fromJsonString:(NSString*) json;
+
+/**
+ *  返回NSDictionary 或者 NSArray
+ */
++(id) fromJsonData:(NSData*)jsonData;
 
 @end
