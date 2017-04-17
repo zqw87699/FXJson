@@ -30,6 +30,27 @@
     return self;
 }
 
+-(NSDictionary *)fxDictionary {
+    NSMutableDictionary *dict = nil;
+    if ([[self class] conformsToProtocol:@protocol(IFXJsonObject)]) {
+        dict = [[NSMutableDictionary alloc] init];
+        NSArray *allPropertys = [FXJsonUtiles getPropertys:[self class]];
+        for (FXJsonObject *object in allPropertys) {
+            if ([object nonJson]) {
+                continue;
+            }
+            id value = [self valueForKey:[object name]];
+            if (value && value != [NSNull null]) {
+                id o = [FXJsonUtiles toObjectValue:value propertyDesc:object];
+                if (o) {
+                    [dict setObject:o forKey:object.jsonName];
+                }
+            }
+        }
+    }
+    return dict;
+}
+
 /**
  *  属性到JSON属性名称映射
  */
@@ -175,6 +196,136 @@ static NSSet *numberTypeNames = nil;
         }
             break;
     }
+    return returnValue;
+}
+
++(FXObjectType)getType:(id)value {
+    FXObjectType t = FXObjectTypeObject;
+    NSString *typeName = NSStringFromClass([value class]);
+    if ([[value class] conformsToProtocol:@protocol(IFXJsonObject)]) {
+        t = FXObjectTypeCustom;
+    }
+    return t;
+}
+
++(NSData*) toJson:(id) object {
+    if (object) {
+        id o = object;
+        if (![NSJSONSerialization isValidJSONObject:object]) {
+            o = [self toObjectValue:object propertyDesc:nil];
+        }
+        if (o) {
+            NSError *error;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:o options:NSJSONWritingPrettyPrinted error:&error];
+            if (error) {
+                @throw [NSException exceptionWithName:@"WJJSONException" reason:[error userInfo][NSLocalizedDescriptionKey] userInfo:[error userInfo]];
+            } else {
+                return jsonData;
+            }
+        }
+    }
+    return nil;
+}
+
++(id) toObjectValue:(id) value propertyDesc:(FXJsonObject*) desc {
+    FXObjectType t = [desc type];
+    id returnValue = nil;
+    if (desc == nil) {
+        t = [self getType:value];
+    }
+    switch (t) {
+        case FXObjectTypeArray:
+        {
+            Class genericClazz = [desc genericClass];
+            NSMutableArray *array = [[NSMutableArray alloc] init];
+            for (id o in value) {
+                if ([o isKindOfClass:[NSString class]] || [o isKindOfClass:[NSNumber class]]) {
+                    [array addObject:o];
+                } else {
+                    if (genericClazz) {
+                        [array addObject:[o fxDictionary]];
+                    } else {
+                        [array addObject:[self toObjectValue:o propertyDesc:nil]];
+                    }
+                }
+            }
+            returnValue = array;
+        }
+            break;
+        case FXObjectTypeSet:
+        {
+            Class genericClazz = [desc genericClass];
+            NSMutableArray *array = [[NSMutableArray alloc] init];
+            for (id o in value) {
+                if ([o isKindOfClass:[NSString class]] || [o isKindOfClass:[NSNumber class]]) {
+                    [array addObject:o];
+                } else {
+                    if (genericClazz) {
+                        [array addObject:[o fxDictionary]];
+                    } else {
+                        [array addObject:[self toObjectValue:o propertyDesc:nil]];
+                    }
+                }
+            }
+            returnValue = array;
+        }
+            break;
+        case FXObjectTypeDictionary:
+        {
+            NSDictionary *genericClazzDict = [desc genericClassDict];
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+            NSArray *keys = [value allKeys];
+            for (NSString *key in keys) {
+                id v = value[key];
+                if ([v isKindOfClass:[NSString class]] || [v isKindOfClass:[NSNumber class]]) {
+                    [dict setObject:v forKey:key];
+                } else {
+                    Class genericClazz = genericClazzDict[key];
+                    if (genericClazz) {
+                        [dict setObject:[v fxDictionary] forKey:key];
+                    } else {
+                        [dict setObject:[self toObjectValue:v propertyDesc:nil] forKey:key];
+                    }
+                }
+            }
+            returnValue = dict;
+        }
+            break;
+        case FXObjectTypeDate:
+        {
+            NSString *dfs = [desc dateFormat];
+            if (dfs) {
+                NSDateFormatter*fxDateFormat = [[NSDateFormatter alloc] init];
+                [fxDateFormat setDateFormat:dfs];
+                returnValue = [fxDateFormat stringFromDate:value];
+            } else {
+                returnValue = value;
+            }
+        }
+            break;
+            
+        case FXObjectTypeNumber:
+        {
+            returnValue = value;
+        }
+            break;
+        case FXObjectTypeString:
+        {
+            returnValue = value;
+        }
+            break;
+        case FXObjectTypeCustom:
+        {
+            returnValue = [value fxDictionary];
+        }
+            break;
+        default:
+        {
+            returnValue = value; //WJObjectTypeObject  对象类型如果不是实现了IWJJSONObject 协议则忽略转换
+        }
+            break;
+    }
+    
     return returnValue;
 }
 

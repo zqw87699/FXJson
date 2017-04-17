@@ -28,6 +28,11 @@
  */
 + (NSString*)getPropertyTypeNameByPropertyName:(NSString*)proName class:(Class)clazz;
 
+/**
+ *  将对象转成Json（可以直接解析NSDictionary，NSArray，NSObject）
+ */
++(NSData*) toJson:(id) object;
+
 /*
  *  将Json数据转换为指定类型(遵守IFXJsonObject协议)
  */
