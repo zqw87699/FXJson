@@ -33,6 +33,8 @@
  */
 +(NSData*) toJson:(id) object;
 
++(id) toObjectValue:(id) value propertyDesc:(FXJsonObject*) desc;
+
 /*
  *  将Json数据转换为指定类型(遵守IFXJsonObject协议)
  */
