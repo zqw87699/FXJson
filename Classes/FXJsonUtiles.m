@@ -92,11 +92,23 @@ static NSSet *ignorePropertyNames = nil;
 //数字类型名称列表
 static NSSet *numberTypeNames = nil;
 
+static NSDictionary*objectTypeDict;
+
 @implementation FXJsonUtiles
 
 +(void)load {
     ignorePropertyNames = [[NSSet alloc] initWithObjects:@"superclass",@"hash",@"debugDescription",@"description", nil];
     numberTypeNames = [[NSSet alloc] initWithObjects:@"B",@"i",@"I",@"d",@"D",@"c",@"C",@"f",@"l",@"L",@"s",@"S",@"q",@"Q", nil];
+    objectTypeDict = @{@"NSString":@(FXObjectTypeString),
+                       @"NSMutableString":@(FXObjectTypeString),
+                       @"NSNumber":@(FXObjectTypeNumber),
+                       @"NSSet":@(FXObjectTypeSet),
+                       @"NSMutableSet":@(FXObjectTypeSet),
+                       @"NSArray":@(FXObjectTypeArray),
+                       @"NSMutableArray":@(FXObjectTypeArray),
+                       @"NSDictionary":@(FXObjectTypeDictionary),
+                       @"NSMutableDictionary":@(FXObjectTypeDictionary),
+                       @"NSDate":@(FXObjectTypeDate)};
 }
 
 +(id) fromObject:(id) value propertyDesc:(FXJsonObject*) desc {
@@ -201,8 +213,11 @@ static NSSet *numberTypeNames = nil;
 
 +(FXObjectType)getType:(id)value {
     FXObjectType t = FXObjectTypeObject;
-    NSString *typeName = NSStringFromClass([value class]);
-    if ([[value class] conformsToProtocol:@protocol(IFXJsonObject)]) {
+    NSString *typeName = NSStringFromClass([value classForCoder]);
+    NSNumber *n = objectTypeDict[typeName];
+    if (n) {
+        t = [n integerValue];
+    }else if ([[value class] conformsToProtocol:@protocol(IFXJsonObject)]) {
         t = FXObjectTypeCustom;
     }
     return t;

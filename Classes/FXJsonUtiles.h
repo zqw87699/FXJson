@@ -14,6 +14,8 @@
 
 -(instancetype) initWithFXJsonDictionary:(NSDictionary*) dictionary;
 
+-(NSDictionary *)fxDictionary;
+
 @end
 
 @interface FXJsonUtiles : NSObject
